@@ -41,7 +41,9 @@ ratpack {
         prefix('api/v1') {
             prefix('fantasy-baseball') {
                 get('player-rater') {
-                    render file('fantasy-baseball/player_rater_2021.json')
+                    def playerRatings = file('fantasy-baseball/player_rater_2021.json')
+
+                    render playerRatings
                 }
             }
         }
