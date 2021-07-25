@@ -54,12 +54,11 @@ ratpack {
                 get('mlb/team/rosters') {
                     def mlbTeamId = request.queryParams.mlbTeamId
 
-                    if(mlbTeamId) {
+                    if (mlbTeamId) {
                         def teamRosters = mlbStatsAPIService.getMlbRoster(mlbTeamId)
 
                         render new JsonBuilder(teamRosters).toPrettyString()
-                    }
-                    else {
+                    } else {
                         clientError(400)
                     }
                 }
@@ -67,12 +66,23 @@ ratpack {
                 get('mlb/player/stats/hitting') {
                     def mlbPlayerId = request.queryParams.mlbPlayerId
 
-                    if(mlbPlayerId) {
+                    if (mlbPlayerId) {
                         def hittingStats = mlbStatsAPIService.getPlayerHittingStats(mlbPlayerId)
 
                         render new JsonBuilder(hittingStats).toPrettyString()
+                    } else {
+                        clientError(400)
                     }
-                    else {
+                }
+
+                get('mlb/player/stats/pitching') {
+                    def mlbPlayerId = request.queryParams.mlbPlayerId
+
+                    if (mlbPlayerId) {
+                        def pitchingStats = mlbStatsAPIService.getPlayerPitchingStats(mlbPlayerId)
+
+                        render new JsonBuilder(pitchingStats).toPrettyString()
+                    } else {
                         clientError(400)
                     }
                 }

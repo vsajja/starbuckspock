@@ -40,14 +40,28 @@ class MlbStatsAPIServiceSpec extends Specification {
 
     def "get player hitting stats"() {
         setup:
-        def ohtaniPlayerId = 660271
+        def ohtani = 660271
 
         when:
-        def ohtaniHittingStats = mlbStatsAPIService.getPlayerHittingStats(ohtaniPlayerId)
+        def ohtaniHittingStats = mlbStatsAPIService.getPlayerHittingStats(ohtani)
 
         then:
         assert ohtaniHittingStats.size() > 0
         // Ohtani hit 22 homers in his rookie year (2018)
         assert ohtaniHittingStats[0]['homeRuns'] == 22
+    }
+
+    def "get player pitching stats"() {
+        setup:
+        def ohtani = 660271
+
+        when:
+        def pitchingStats = mlbStatsAPIService.getPlayerPitchingStats(ohtani)
+
+        then:
+        assert pitchingStats.size() > 0
+        // Ohtani had an era of 3.31 in his rookie year (2018)
+        // TODO: why is this a String?
+        assert pitchingStats[0]['era'] == '3.31'
     }
 }
