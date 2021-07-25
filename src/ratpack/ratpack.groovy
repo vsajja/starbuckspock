@@ -63,6 +63,19 @@ ratpack {
                         clientError(400)
                     }
                 }
+
+                get('mlb/player/stats/hitting') {
+                    def mlbPlayerId = request.queryParams.mlbPlayerId
+
+                    if(mlbPlayerId) {
+                        def hittingStats = mlbStatsAPIService.getPlayerHittingStats(mlbPlayerId)
+
+                        render new JsonBuilder(hittingStats).toPrettyString()
+                    }
+                    else {
+                        clientError(400)
+                    }
+                }
             }
         }
 

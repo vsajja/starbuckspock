@@ -37,4 +37,17 @@ class MlbStatsAPIServiceSpec extends Specification {
         then:
         assert blueJays.find { it['nameLast'] == 'Guerrero Jr.' }
     }
+
+    def "get player hitting stats"() {
+        setup:
+        def ohtaniPlayerId = 660271
+
+        when:
+        def ohtaniHittingStats = mlbStatsAPIService.getPlayerHittingStats(ohtaniPlayerId)
+
+        then:
+        assert ohtaniHittingStats.size() > 0
+        // Ohtani hit 22 homers in his rookie year (2018)
+        assert ohtaniHittingStats[0]['homeRuns'] == 22
+    }
 }

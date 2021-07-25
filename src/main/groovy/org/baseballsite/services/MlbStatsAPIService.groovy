@@ -124,4 +124,137 @@ class MlbStatsAPIService {
 
         return teamRoster
     }
+
+    def getPlayerHittingStats(def mlbPlayerId) {
+        Integer startYear = null
+        Integer endYear = Integer.valueOf(Calendar.getInstance().get(Calendar.YEAR));
+
+        // use the playerLink to get more player details
+        def playerInfo = new JsonSlurper().parseText(
+                "$MLB_STATS_API_BASE_URL/people/${mlbPlayerId}".toURL().text
+        )['people'][0]
+
+        def hittingStats = []
+
+        def mlbDebutDate = playerInfo['mlbDebutDate']
+
+        // does this player have any major league stats?
+        if (mlbDebutDate != null) {
+            startYear = Integer.parseInt(mlbDebutDate.split('-')[0])
+
+            log.info("getPlayerHittingStats: ${playerInfo['firstName']} ${playerInfo['lastName']} (${startYear}-${endYear}) ${mlbPlayerId}")
+
+            for (year in (startYear..endYear)) {
+                def jsonStr = "$MLB_STATS_API_BASE_URL/people/${mlbPlayerId}?hydrate=stats(group=[hitting],type=season,season=${year})".toURL().text
+                def jsonObj = new JsonSlurper().parseText(jsonStr)
+
+                // some players (pitchers) don't have hitting stats
+                if (jsonObj['people']['stats'][0] != null) {
+                    // println new JsonBuilder(jsonObj['people']).toString()
+
+                    def splits = jsonObj['people']['stats'][0]['splits'][0]
+
+                    def stats = []
+
+                    // split season (player on multiple teams)
+                    if (splits.size() > 1) {
+                        splits.eachWithIndex { splitSeasonStats, teamNumber ->
+                            splitSeasonStats.putAt('teamNumber', teamNumber)
+                            stats.add(splitSeasonStats)
+                        }
+                    } else {
+                        stats.add(splits[0])
+                    }
+
+                    stats.each { stat ->
+                        def seasonStats = stat['stat']
+                        def team = stat['team']
+                        def teamNumber = stat['teamNumber'] != null ? stat['teamNumber'] : 0
+                        def season = Integer.parseInt(stat['season'])
+
+                        def hittingStatLine = parseSeasonHittingStats(seasonStats)
+
+                        // set the team the player played for this season (player can be on multiple teams)
+                        if (team != null) {
+                            def mlbTeamId = stat['team']['id']
+                            hittingStatLine['mlbTeamId'] = mlbTeamId
+                        } else {
+                            // combined stats for entire season, no team
+                        }
+
+                        // set mlb player id & season
+                        hittingStatLine['mlbPlayerId'] = mlbPlayerId
+                        hittingStatLine['season'] = season
+                        hittingStatLine['teamNumber'] = teamNumber
+
+                        hittingStats.add(hittingStatLine)
+                    }
+                }
+            }
+        }
+
+        return hittingStats
+    }
+
+    def parseSeasonHittingStats(seasonStats) {
+        def games = seasonStats['gamesPlayed']
+        def atBats = seasonStats['atBats']
+        def runs = seasonStats['runs']
+        def homeRuns = seasonStats['homeRuns']
+        def rbis = seasonStats['rbi']
+        def stolenBases = seasonStats['stolenBases']
+        def caughtStealing = seasonStats['caughtStealing']
+        def avg = Double.parseDouble(seasonStats['avg'])
+        def obp = Double.parseDouble(seasonStats['obp'])
+        def slg = Double.parseDouble(seasonStats['slg'])
+        def ops = Double.parseDouble(seasonStats['ops'])
+        def doubles = seasonStats['doubles']
+        def triples = seasonStats['triples']
+        def hits = seasonStats['hits']
+        def strikeOuts = seasonStats['strikeOuts']
+        def baseOnBalls = seasonStats['baseOnBalls']
+        def intentionalWalks = seasonStats['intentionalWalks']
+        def groundOuts = seasonStats['groundOuts']
+        def airOuts = seasonStats['airOuts']
+        def hitByPitch = seasonStats['hitByPitch']
+        def groundIntoDoublePlay = seasonStats['groundIntoDoublePlay']
+        def numberOfPitches = seasonStats['numberOfPitches']
+        def plateAppearances = seasonStats['plateAppearances']
+        def totalBases = seasonStats['totalBases']
+        def leftOnBase = seasonStats['leftOnBase']
+        def sacBunts = seasonStats['sacBunts']
+        def sacFlies = seasonStats['sacFlies']
+        def babip = seasonStats['babip'] != '.---' ? Double.parseDouble(seasonStats['babip']) : null
+
+        return [
+                'games'               : games,
+                'atBats'              : atBats,
+                'runs'                : runs,
+                'homeRuns'            : homeRuns,
+                'rbis'                : rbis,
+                'stolenBases'         : stolenBases,
+                'caughtStealing'      : caughtStealing,
+                'avg'                 : avg,
+                'obp'                 : obp,
+                'slg'                 : slg,
+                'ops'                 : ops,
+                'doubles'             : doubles,
+                'triples'             : triples,
+                'hits'                : hits,
+                'strikeOuts'          : strikeOuts,
+                'baseOnBalls'         : baseOnBalls,
+                'intentionalWalks'    : intentionalWalks,
+                'groundOuts'          : groundOuts,
+                'airOuts'             : airOuts,
+                'hitByPitch'          : hitByPitch,
+                'groundIntoDoublePlay': groundIntoDoublePlay,
+                'numberOfPitches'     : numberOfPitches,
+                'plateAppearances'    : plateAppearances,
+                'totalBases'          : totalBases,
+                'leftOnBase'          : leftOnBase,
+                'sacBunts'            : sacBunts,
+                'sacFlies'            : sacFlies,
+                'babip'               : babip
+        ]
+    }
 }
