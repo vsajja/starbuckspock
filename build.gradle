@@ -1,0 +1,35 @@
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath 'io.ratpack:ratpack-gradle:1.8.0'
+    }
+}
+
+apply plugin: 'io.ratpack.ratpack-groovy'
+
+run {
+    jvmArgs "-Dratpack.port=5051"
+}
+
+repositories {
+    mavenCentral()
+    jcenter()
+}
+
+dependencies {
+    implementation 'io.github.http-builder-ng:http-builder-ng-okhttp:1.0.4'
+
+    runtimeOnly 'org.slf4j:slf4j-simple:1.7.30'
+
+    testImplementation('org.spockframework:spock-core:1.0-groovy-2.4') {
+        exclude module: 'groovy-all'
+    }
+    
+    testImplementation ratpack.dependency('groovy-test')
+}
+
+task stage {
+    dependsOn 'installDist'
+}
