@@ -39,6 +39,10 @@ ratpack {
             next()
         }
 
+        get('ping') {
+            render '<3'
+        }
+
         prefix('api/v1') {
             prefix('fantasy-baseball') {
                 get('mlb/teams') {
