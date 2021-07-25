@@ -1,3 +1,4 @@
+import groovy.json.JsonBuilder
 import groovy.json.JsonSlurper
 import org.baseballsite.services.BaseballService
 import org.baseballsite.services.MlbStatsAPIService
@@ -40,10 +41,23 @@ ratpack {
 
         prefix('api/v1') {
             prefix('fantasy-baseball') {
-                get('player-rater') {
-                    def playerRatings = file('fantasy-baseball/player_rater_2021.json')
+                get('mlb/teams') {
+                    def mlbTeams = mlbStatsAPIService.getMlbTeams()
 
-                    render playerRatings
+                    render new JsonBuilder(mlbTeams).toPrettyString()
+                }
+
+                get('mlb/team/rosters') {
+                    def mlbTeamId = request.queryParams.mlbTeamId
+
+                    if(mlbTeamId) {
+                        def teamRosters = mlbStatsAPIService.getMlbRoster(mlbTeamId)
+
+                        render new JsonBuilder(teamRosters).toPrettyString()
+                    }
+                    else {
+                        clientError(400)
+                    }
                 }
             }
         }
