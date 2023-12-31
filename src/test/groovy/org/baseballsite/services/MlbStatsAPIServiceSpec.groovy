@@ -35,7 +35,7 @@ class MlbStatsAPIServiceSpec extends Specification {
         }
 
         then:
-        assert blueJays.find { it['nameLast'] == 'Guerrero Jr.' }
+        assert blueJays.find { it['nameLast'] == 'Guerrero' }
     }
 
     def "get player hitting stats"() {
